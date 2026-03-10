@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "148503083497",
+    "project_id": "lpsadd-619ea",
+    "storage_bucket": "lpsadd-619ea.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:148503083497:android:9f99fda99226a887ef7378",
+        "android_client_info": {
+          "package_name": "com.lpsadd.apps"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCILM7o7_EoHWp_0R-xcZsGM6OAMnLWyuM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
