@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dp_sad/Common/AppAssets/app_assets.dart';
-import 'package:dp_sad/Common/AppButton/app_button.dart';
 import 'package:dp_sad/Common/AppColors/app_colors.dart';
 import 'package:dp_sad/Common/AppTextField/app_text_field.dart';
 import 'package:dp_sad/Common/AppTextStyle/app_text_style.dart';
@@ -19,7 +18,6 @@ import 'package:shimmer/shimmer.dart';
 import '../../models/filter_api_data_model/filter_api_data_model.dart' as r;
 import '../../models/home_model/home_model.dart';
 import '../../models/resource_detail_model/resource_detail_model.dart';
-import '../../models/filter_tag_model/filter_tag_model.dart';
 
 class DisplayResource {
   final int? id;
@@ -178,7 +176,7 @@ class _AllResourcesScreenState extends State<AllResourcesScreen> {
 
                     return DropdownButtonFormField<int>(
                       iconEnabledColor: AppColors.whiteColor,
-                      value: _selectedCategoryId,
+                      initialValue: _selectedCategoryId,
                       hint: Text(
                         "Select Resource Category",
                         style: AppTextStyle.k15Bold400TextStyle.copyWith(

@@ -11,7 +11,6 @@ import '../auth_view_model/auth_view_model.dart';
 class DashboardViewModel extends ChangeNotifier {
   final DashboardRepository authRepository = DashboardRepository();
 
-
   DashboardModel? _dashboardModel;
   DashboardModel? get dashboardModel => _dashboardModel;
 
@@ -52,14 +51,15 @@ class DashboardViewModel extends ChangeNotifier {
         final allCurrentWeekEvents = response.data.currentWeekEvents;
         final allActiveEvents = response.data.activeEvents;
 
+        _event =
+            authProvider.isLoggedIn
+                ? allCurrentWeekEvents
+                : allCurrentWeekEvents.where((e) => e.isShow == 1).toList();
 
-        _event = authProvider.isLoggedIn
-            ? allCurrentWeekEvents
-            : allCurrentWeekEvents.where((e) => e.isShow == 1).toList();
-
-        _activeEvents = authProvider.isLoggedIn
-            ? allActiveEvents
-            : allActiveEvents.where((e) => e.isShow == 1).toList();
+        _activeEvents =
+            authProvider.isLoggedIn
+                ? allActiveEvents
+                : allActiveEvents.where((e) => e.isShow == 1).toList();
 
         Utils.toastMessage(response.message);
       } else {
@@ -102,5 +102,4 @@ class DashboardViewModel extends ChangeNotifier {
       dashboard = false;
     }
   }
-
 }

@@ -10,7 +10,6 @@ import '../../Common/AppColors/app_colors.dart';
 import '../../Common/AppTextStyle/app_text_style.dart';
 import '../../Common/Config/size_config.dart';
 import '../../utils/utils.dart';
-import '../../view_model/auth_view_model/auth_view_model.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -38,7 +37,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthViewModel>();
+    // final authProvider = context.watch<AuthViewModel>();
     return Consumer<DashboardViewModel>(
       builder: (context, dashboard, _) {
         return Scaffold(

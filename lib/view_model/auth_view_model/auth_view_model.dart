@@ -11,7 +11,6 @@ import 'package:dp_sad/repository/auth_repository/auth_repository.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -183,9 +182,7 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final data = {
-        "device_token": deviceToken,
-      };
+      final data = {"device_token": deviceToken};
 
       final response = await authRepository.storedDeviceTokenRepo(data);
 
@@ -597,5 +594,4 @@ class AuthViewModel extends ChangeNotifier {
       debugPrint("❌ FCM token error: $e");
     }
   }
-
 }

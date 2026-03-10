@@ -1,5 +1,4 @@
 import 'package:dp_sad/models/event_detail_model/event_detail_model.dart';
-import 'package:dp_sad/models/resource_detail_model/resource_detail_model.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../data/network/base_api_service.dart';

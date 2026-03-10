@@ -1,7 +1,7 @@
+import 'package:dp_sad/Screens/HomeScreen/home_screen.dart';
 import 'package:dp_sad/res/notification_service.dart';
 import 'package:dp_sad/res/providers.dart';
 import 'package:dp_sad/view_model/auth_view_model/auth_view_model.dart';
-import 'package:dp_sad/Screens/HomeScreen/home_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +10,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-FlutterLocalNotificationsPlugin();
+    FlutterLocalNotificationsPlugin();
 
 /// ✅ Background message handler
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -20,12 +20,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 /// ✅ Request user permission for notifications
 Future<void> _requestNotificationPermission() async {
-  NotificationSettings settings =
-  await FirebaseMessaging.instance.requestPermission(
-    alert: true,
-    badge: true,
-    sound: true,
-  );
+  NotificationSettings settings = await FirebaseMessaging.instance
+      .requestPermission(alert: true, badge: true, sound: true);
   print('🔔 Notification permission status: ${settings.authorizationStatus}');
 }
 
@@ -53,9 +49,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  FirebaseMessaging.onBackgroundMessage(
-    _firebaseMessagingBackgroundHandler,
-  );
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   final authVM = AuthViewModel();
   await authVM.initUser();
@@ -68,10 +62,11 @@ void main() async {
   );
 
   const AndroidInitializationSettings initializationSettingsAndroid =
-  AndroidInitializationSettings('@mipmap/ic_launcher');
+      AndroidInitializationSettings('@mipmap/ic_launcher');
 
-  const InitializationSettings initializationSettings =
-  InitializationSettings(android: initializationSettingsAndroid);
+  const InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+  );
 
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
@@ -90,9 +85,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthViewModel>.value(value: authVM),
-        ...providers.where(
-              (p) => !(p is ChangeNotifierProvider<AuthViewModel>),
-        ),
+        ...providers.where((p) => p is! ChangeNotifierProvider<AuthViewModel>),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

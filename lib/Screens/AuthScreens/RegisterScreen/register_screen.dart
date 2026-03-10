@@ -33,7 +33,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _stateController = TextEditingController();
   final TextEditingController _zipController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
-  DateTime? _selectedDate;
+  DateTime? selectedDate;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -232,7 +232,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             );
                             if (pickedDate != null) {
                               setState(() {
-                                _selectedDate = pickedDate;
+                                selectedDate = pickedDate;
                                 _dobController.text =
                                 "${pickedDate.day.toString().padLeft(2, '0')}/"
                                     "${pickedDate.month.toString().padLeft(2, '0')}/"

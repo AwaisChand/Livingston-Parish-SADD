@@ -48,7 +48,7 @@ class AllEventsScreen extends StatefulWidget {
 class _AllEventsScreenState extends State<AllEventsScreen> {
   final TextEditingController _searchController = TextEditingController();
   int? _selectedCategoryId;
-  String? _selectedCategoryName;
+  String? selectedCategoryName;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -181,7 +181,7 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
               builder: (context, homeVM, _) {
                 final categories = homeVM.homeModel?.data?.eventCategories;
                 return DropdownButtonFormField<int>(
-                  value: _selectedCategoryId,
+                  initialValue: _selectedCategoryId,
                   iconEnabledColor: AppColors.whiteColor,
                   isExpanded: true,
                   hint: Text(
@@ -207,7 +207,7 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
                   onChanged: (value) {
                     setState(() {
                       _selectedCategoryId = value;
-                      _selectedCategoryName =
+                      selectedCategoryName =
                           categories?.firstWhere((c) => c.id == value).name;
                     });
                     final filterProvider = context.read<HomeViewModel>();

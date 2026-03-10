@@ -4,7 +4,6 @@ import 'package:dp_sad/Common/AppColors/app_colors.dart';
 import 'package:dp_sad/Common/Config/sizedbox_extension.dart';
 import 'package:dp_sad/models/home_model/home_model.dart';
 import 'package:dp_sad/view_model/auth_view_model/auth_view_model.dart';
-import 'package:dp_sad/view_model/home_view_model/home_view_model.dart';
 import 'package:dp_sad/view_model/resource_detail_view_model/resource_detail_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +19,8 @@ class ResourceDetailsScreen extends StatefulWidget {
   const ResourceDetailsScreen({
     super.key,
     required this.index,
-    required this.homeResources, required this.resourceCategory,
+    required this.homeResources,
+    required this.resourceCategory,
   });
 
   final int index;
@@ -45,29 +45,28 @@ class _ResourceDetailsState extends State<ResourceDetailsScreen> {
           drawer: Utils.drawer(context),
 
           // ✅ Bottom button always visible
-          bottomNavigationBar: auth.isLoggedIn
-              ? Container(
-            padding: EdgeInsets.all(getHeight(20)),
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-            ),
-            child: SafeArea(
-              top: false,
-              child: AppButton(
-                onPressed: () {
-                  resourceDetail.downloadPdf(
-                    context: context,
-                    title: widget.homeResources.title ?? '',
-                    keywords: widget.homeResources.keywords ?? '',
-                    content: widget.homeResources.content ?? '',
-                  );
-                },
-                btnText: "DOWNLOAD PDF",
-                fontSize: 25,
-              ),
-            ),
-          )
-              : null,
+          bottomNavigationBar:
+              auth.isLoggedIn
+                  ? Container(
+                    padding: EdgeInsets.all(getHeight(20)),
+                    decoration: BoxDecoration(color: Colors.transparent),
+                    child: SafeArea(
+                      top: false,
+                      child: AppButton(
+                        onPressed: () {
+                          resourceDetail.downloadPdf(
+                            context: context,
+                            title: widget.homeResources.title ?? '',
+                            keywords: widget.homeResources.keywords ?? '',
+                            content: widget.homeResources.content ?? '',
+                          );
+                        },
+                        btnText: "DOWNLOAD PDF",
+                        fontSize: 25,
+                      ),
+                    ),
+                  )
+                  : null,
 
           body: SafeArea(
             child: Padding(
@@ -113,31 +112,33 @@ class _ResourceDetailsState extends State<ResourceDetailsScreen> {
                       borderRadius: BorderRadius.circular(getFont(20)),
                       child: CachedNetworkImage(
                         imageUrl:
-                        "${AppUrl.baseUrl}/${widget.homeResources.image?.replaceFirst(RegExp(r'^/'), '')}",
+                            "${AppUrl.baseUrl}/${widget.homeResources.image?.replaceFirst(RegExp(r'^/'), '')}",
                         fit: BoxFit.cover,
                         height: getHeight(200),
                         width: double.infinity,
-                        placeholder: (context, url) => Shimmer.fromColors(
-                          baseColor: Colors.grey[300]!,
-                          highlightColor: Colors.grey[100]!,
-                          child: Container(
-                            width: double.infinity,
-                            height: getHeight(200),
-                            margin: EdgeInsets.only(left: getWidth(15)),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              color: Colors.white,
+                        placeholder:
+                            (context, url) => Shimmer.fromColors(
+                              baseColor: Colors.grey[300]!,
+                              highlightColor: Colors.grey[100]!,
+                              child: Container(
+                                width: double.infinity,
+                                height: getHeight(200),
+                                margin: EdgeInsets.only(left: getWidth(15)),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        errorWidget: (context, url, error) => ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Image(
-                            image: AssetImage(AppAssets.resourcesImage),
-                            height: getHeight(200),
-                            width: double.infinity,
-                          ),
-                        ),
+                        errorWidget:
+                            (context, url, error) => ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: Image(
+                                image: AssetImage(AppAssets.resourcesImage),
+                                height: getHeight(200),
+                                width: double.infinity,
+                              ),
+                            ),
                       ),
                     ),
 
@@ -183,10 +184,7 @@ class _ResourceDetailsState extends State<ResourceDetailsScreen> {
                     25.sh,
 
                     /// 🔹 Details
-                    _columnWidget(
-                      "Details",
-                      "${widget.homeResources.content}",
-                    ),
+                    _columnWidget("Details", "${widget.homeResources.content}"),
 
                     25.sh,
                   ],
