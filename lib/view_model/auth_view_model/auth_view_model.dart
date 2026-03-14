@@ -133,20 +133,39 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
+  /// Get FCM token with retries (APNs on iOS can take a moment to be ready).
+  /// Returns null if unavailable (e.g. iOS Simulator or APNs not ready).
+  Future<String?> _getFCMTokenWithRetry({int maxAttempts = 3}) async {
+    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        final token = await FirebaseMessaging.instance.getToken();
+        if (token != null && token.isNotEmpty) return token;
+      } catch (_) {
+        // APNs not ready yet — ignore and retry
+      }
+      if (attempt < maxAttempts) {
+        await Future.delayed(Duration(seconds: attempt));
+      }
+    }
+    return null;
+  }
+
   ///Login Api
   Future<void> loginApi(BuildContext context, dynamic data) async {
     loading = true;
     try {
       debugPrint("login user with data: $data");
 
-      // ✅ Step 1: Get FCM device token
-      String? deviceToken = await FirebaseMessaging.instance.getToken();
-      debugPrint("Device Token: $deviceToken");
+      // Get FCM token (retry a few times; on iOS APNs may not be ready immediately)
+      String? deviceToken = await _getFCMTokenWithRetry();
+      if (deviceToken != null && kDebugMode) {
+        debugPrint("Device Token: $deviceToken");
+      }
+      // Backend requires non-empty device_token; use placeholder if not available yet.
+      // App will send real token via storedDeviceTokenApi when it becomes available.
+      data["device_token"] = deviceToken ?? 'pending';
 
-      // ✅ Step 2: Add token to your API data
-      data["device_token"] = deviceToken;
-
-      // ✅ Step 3: Send request
+      // Send login request
       final response = await authRepository.loginUser(data);
 
       if (response["status"].toString() == "1") {
@@ -580,18 +599,23 @@ class AuthViewModel extends ChangeNotifier {
   Future<void> initFCMToken() async {
     try {
       await FirebaseMessaging.instance.requestPermission();
-
-      // Small delay to avoid SERVICE_NOT_AVAILABLE
-      await Future.delayed(const Duration(seconds: 2));
-
-      final token = await FirebaseMessaging.instance.getToken();
-      debugPrint("✅ FCM Token: $token");
-
-      if (token != null) {
+      final token = await _getFCMTokenWithRetry(maxAttempts: 4);
+      if (token != null && token.isNotEmpty) {
+        if (kDebugMode) debugPrint("✅ FCM Token synced: $token");
         await storedDeviceTokenApi(token);
+      } else if (kDebugMode) {
+        debugPrint(
+          'FCM token not available (e.g. simulator or APNs not ready). '
+          'Real token will sync when available.',
+        );
       }
     } catch (e) {
-      debugPrint("❌ FCM token error: $e");
+      if (kDebugMode) {
+        debugPrint(
+          'FCM token sync skipped: $e. '
+          'On a real device with push enabled, token will sync on next launch.',
+        );
+      }
     }
   }
 }
