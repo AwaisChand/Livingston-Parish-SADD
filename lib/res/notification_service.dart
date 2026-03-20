@@ -1,18 +1,16 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import '../main.dart';
 
 class NotificationService {
-  static final FlutterLocalNotificationsPlugin _notificationsPlugin =
-  FlutterLocalNotificationsPlugin();
-
   static Future<void> showNotification({
     required String title,
     required String body,
   }) async {
     const AndroidNotificationDetails androidDetails =
     AndroidNotificationDetails(
-      'login_channel', // Channel ID
-      'Login Notifications', // Channel name
-      channelDescription: 'Notifications for login success',
+      'login_channel', // SAME as channel created
+      'Login Notifications',
+      channelDescription: 'Notifications for login',
       importance: Importance.max,
       priority: Priority.high,
       playSound: true,
@@ -21,8 +19,8 @@ class NotificationService {
     const NotificationDetails notificationDetails =
     NotificationDetails(android: androidDetails);
 
-    await _notificationsPlugin.show(
-      0, // Notification ID
+    await flutterLocalNotificationsPlugin.show(
+      0,
       title,
       body,
       notificationDetails,

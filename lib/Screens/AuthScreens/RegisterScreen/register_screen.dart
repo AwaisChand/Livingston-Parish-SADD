@@ -33,7 +33,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _stateController = TextEditingController();
   final TextEditingController _zipController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
-  DateTime? selectedDate;
+  DateTime? _selectedDate;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -232,7 +232,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             );
                             if (pickedDate != null) {
                               setState(() {
-                                selectedDate = pickedDate;
+                                _selectedDate = pickedDate;
                                 _dobController.text =
                                 "${pickedDate.day.toString().padLeft(2, '0')}/"
                                     "${pickedDate.month.toString().padLeft(2, '0')}/"
@@ -306,8 +306,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               Utils.toastMessage('Please enter your state');
                             } else if (_zipController.text.isEmpty) {
                               Utils.toastMessage('Please enter your zip code');
-                            } else if (auth.pickedImage == null) {
-                              Utils.toastMessage('Please pick your profile image');
                             }
                             else {
                               Map<String, dynamic> data = {

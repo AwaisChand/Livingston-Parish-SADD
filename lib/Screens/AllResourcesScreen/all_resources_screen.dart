@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dp_sad/Common/AppAssets/app_assets.dart';
 import 'package:dp_sad/Common/AppColors/app_colors.dart';
@@ -48,6 +50,7 @@ class _AllResourcesScreenState extends State<AllResourcesScreen> {
 
   int? _selectedCategoryId;
   String? _selectedCategoryName;
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -92,6 +95,33 @@ class _AllResourcesScreenState extends State<AllResourcesScreen> {
       keywords: resource.keywords,
       content: resource.content,
     );
+  }
+
+  void _applyFilters() {
+    final filterProvider = context.read<HomeViewModel>();
+    final resourceVM = context.read<ResourceDetailViewModel>();
+
+    final search = _searchController.text.trim();
+    final categoryId = _selectedCategoryId;
+
+    final isSearching = search.isNotEmpty;
+    final isCategorySelected =
+        categoryId != null && categoryId != 0;
+
+    // ✅ CASE 1: No filters → load ALL
+    if (!isSearching && !isCategorySelected) {
+      filterProvider.searchQuery = '';
+      resourceVM.resourceDetailApi(context);
+      return;
+    }
+
+    // ✅ CASE 2: Apply filters
+    filterProvider.searchQuery = search;
+
+    filterProvider.resourceFilterApi(context, {
+      "search": search.isNotEmpty ? search : "",
+      "resource_category_id": isCategorySelected ? categoryId : null,
+    });
   }
 
   @override
@@ -176,44 +206,53 @@ class _AllResourcesScreenState extends State<AllResourcesScreen> {
 
                     return DropdownButtonFormField<int>(
                       iconEnabledColor: AppColors.whiteColor,
-                      initialValue: _selectedCategoryId,
+                      value: _selectedCategoryId ?? 0,
+                      isExpanded: true,
+
                       hint: Text(
                         "Select Resource Category",
                         style: AppTextStyle.k15Bold400TextStyle.copyWith(
                           color: AppColors.whiteColor,
                         ),
                       ),
-                      items:
-                          categories.map((category) {
-                            return DropdownMenuItem<int>(
-                              value: category.id,
-                              child: Text(
-                                category.name ?? '',
-                                style: AppTextStyle.k15Bold400TextStyle
-                                    .copyWith(color: AppColors.whiteColor),
+
+                      items: [
+                        // ✅ ALL RESOURCES
+                         DropdownMenuItem<int>(
+                          value: 0,
+                          child: Text(
+                            "All Resources",
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyle.k15Bold400TextStyle.copyWith(
+                              color: AppColors.whiteColor,
+                            ),
+                          ),
+                        ),
+
+                        // ✅ Categories
+                        ...categories.map((category) {
+                          return DropdownMenuItem<int>(
+                            value: category.id,
+                            child: Text(
+                              category.name ?? '',
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyle.k15Bold400TextStyle.copyWith(
+                                color: AppColors.whiteColor,
                               ),
-                            );
-                          }).toList(),
+                            ),
+                          );
+                        }).toList(),
+                      ],
+
                       onChanged: (value) {
                         setState(() {
-                          _selectedCategoryId = value;
-                          _selectedCategoryName =
-                              categories.firstWhere((c) => c.id == value).name;
+                          _selectedCategoryId = value ?? 0;
                         });
 
-                        debugPrint(
-                          "✅ Selected Category: $_selectedCategoryName ($_selectedCategoryId)",
-                        );
-
-                        final filterProvider = context.read<HomeViewModel>();
-                        filterProvider.resourceFilterApi(context, {
-                          "resource_category_id": _selectedCategoryId,
-                          "search":
-                              _searchController.text.isNotEmpty
-                                  ? _searchController.text
-                                  : "",
-                        });
+                        // ✅ Smart filter handler
+                        _applyFilters();
                       },
+
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: AppColors.primaryColor,
@@ -223,24 +262,44 @@ class _AllResourcesScreenState extends State<AllResourcesScreen> {
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(
-                            color: AppColors.deepPurpleColor,
-                          ),
+                          borderSide:
+                          BorderSide(color: AppColors.deepPurpleColor),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(
-                            color: AppColors.deepPurpleColor,
-                          ),
+                          borderSide:
+                          BorderSide(color: AppColors.deepPurpleColor),
                         ),
                       ),
+
                       dropdownColor: AppColors.primaryColor,
                       icon: const Icon(Icons.arrow_drop_down),
+
+                      // ✅ Selected item UI
+                      selectedItemBuilder: (context) {
+                        return [
+                          Text(
+                            "All Resources",
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyle.k15Bold400TextStyle.copyWith(
+                              color: AppColors.whiteColor,
+                            ),
+                          ),
+                          ...categories.map<Widget>((category) {
+                            return Text(
+                              category.name ?? '',
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyle.k15Bold400TextStyle.copyWith(
+                                color: AppColors.whiteColor,
+                              ),
+                            );
+                          }).toList(),
+                        ];
+                      },
                     );
                   },
                 ),
               ),
-
               15.sh,
 
               Padding(
@@ -260,7 +319,7 @@ class _AllResourcesScreenState extends State<AllResourcesScreen> {
                   builder: (context) {
                     final isSearching =
                         filterProvider.searchQuery.isNotEmpty ||
-                        _selectedCategoryId != null;
+                            (_selectedCategoryId != null && _selectedCategoryId != 0);
 
                     final isKeywordSearchActive =
                         isSearching &&
@@ -279,13 +338,34 @@ class _AllResourcesScreenState extends State<AllResourcesScreen> {
                     }
 
                     if (isSearchLoading) {
-                      return const Center(child: CircularProgressIndicator());
+                      return const Center(
+                        child: SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: AppColors.blackColor,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                      );
                     }
 
                     if (isEmptySearchResult) {
                       return Center(
                         child: Text(
                           "No matching results found",
+                          style: AppTextStyle.k20Bold700TextStyle.copyWith(
+                            color: AppColors.deepPurpleColor,
+                          ),
+                        ),
+                      );
+                    }
+                    if (!isSearching &&
+                        !resource.resourceDetailLoading &&
+                        (resource.resource == null || resource.resource!.isEmpty)) {
+                      return Center(
+                        child: Text(
+                          "No Resources Available Yet",
                           style: AppTextStyle.k20Bold700TextStyle.copyWith(
                             color: AppColors.deepPurpleColor,
                           ),
@@ -384,24 +464,33 @@ class _AllResourcesScreenState extends State<AllResourcesScreen> {
                                       ),
                                     ),
                                   ),
-                              errorWidget:
-                                  (context, url, error) => Container(
-                                    width: getWidth(170),
-                                    margin: EdgeInsets.only(
-                                      left: getWidth(20),
-                                      right: getWidth(20),
-                                    ),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12),
-                                      image: DecorationImage(
-                                        image: AssetImage(
-                                          AppAssets.resourcesImage,
-                                        ),
-                                        fit: BoxFit.cover,
+                              errorWidget: (context, url, error) => Container(
+                                width: getWidth(170),
+                                height: getHeight(200),
+                                margin: EdgeInsets.only(
+                                  left: getWidth(20),
+                                  right: getWidth(20),
+                                ),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  color: Colors.white,
+                                ),
+                                child: Stack(
+                                  children: [
+                                    Center(
+                                      child: Image.asset(
+                                        AppAssets.logo,
+                                        height: 90,
+                                        fit: BoxFit.contain,
                                       ),
                                     ),
-                                    child: _buildItemFooter(displayItem),
-                                  ),
+
+                                    // Footer stays same
+                                    _buildItemFooter(displayItem),
+                                  ],
+                                ),
+                              ),
+
                             ),
                           ),
                         );

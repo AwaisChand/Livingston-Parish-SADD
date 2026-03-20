@@ -8,7 +8,6 @@ import 'package:dp_sad/view_model/get_log_time_view_model/get_log_time_view_mode
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
 import '../../../Common/AppButton/app_button.dart';
 import '../../utils/utils.dart';
 
@@ -47,7 +46,7 @@ class _LogTimeScreenState extends State<LogTimeScreen> {
       final dashboard = context.read<DashboardViewModel>();
       dashboardProvider.getLogTimeApi(context, eventId);
       // allEvents.eventDetailApi(context);
-      dashboard.getDashboardData(context);
+      dashboard.getDashboardData(context, showMessage: false);
     });
   }
 
@@ -82,14 +81,7 @@ class _LogTimeScreenState extends State<LogTimeScreen> {
   Widget build(BuildContext context) {
     final dashboardProvider = context.watch<DashboardViewModel>();
 
-    final registeredEvents =
-        dashboardProvider.registerEvent?.map((e) => e.event).toList() ?? [];
-    final activeEvents = dashboardProvider.activeEvents ?? [];
-
-    final Map<int, dynamic> combinedMap = {
-      for (var e in [...registeredEvents, ...activeEvents]) e.id: e,
-    };
-    final combinedEvents = combinedMap.values.toList();
+    final regEvents = dashboardProvider.registerEvent ?? [];
 
     String formatDate(String rawDate) {
       DateTime parsedDate = DateTime.parse(rawDate);
@@ -168,45 +160,58 @@ class _LogTimeScreenState extends State<LogTimeScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         decoration: BoxDecoration(
-                          color:
-                              AppColors.primaryColor, // background of the field
+                          color: AppColors.primaryColor,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: Colors.grey),
                         ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
-                            dropdownColor:
-                                AppColors
-                                    .primaryColor, // 👈 menu background color
-                            iconEnabledColor: AppColors.whiteColor,
-                            value: eventId,
                             isExpanded: true,
+                            dropdownColor: AppColors.primaryColor,
+                            iconEnabledColor: AppColors.whiteColor,
+
+                            /// ✅ SAFE VALUE (prevents crash)
+                            value:
+                                regEvents.any(
+                                      (e) => e.event.id.toString() == eventId,
+                                    )
+                                    ? eventId
+                                    : null,
+
+                            hint: const Text(
+                              "Select Event",
+                              style: TextStyle(color: Colors.white),
+                            ),
+
+                            /// ✅ ITEMS (ONLY REGISTERED EVENTS)
                             items:
-                                combinedEvents.map<DropdownMenuItem<String>>((
-                                  event,
-                                ) {
+                                regEvents.map((e) {
+                                  final event = e.event;
+
                                   return DropdownMenuItem<String>(
                                     value: event.id.toString(),
                                     child: Text(
-                                      event.name ?? "No Name",
-                                      style: AppTextStyle.k15Bold400TextStyle
-                                          .copyWith(
-                                            fontSize: 15,
-                                            color:
-                                                AppColors
-                                                    .whiteColor, // 👈 text color
-                                          ),
+                                      event.name,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      ),
                                     ),
                                   );
                                 }).toList(),
+
+                            /// ✅ ON CHANGE
                             onChanged: (value) {
-                              final selectedEvent = combinedEvents.firstWhere(
-                                (e) => e.id.toString() == value,
+                              if (value == null) return;
+
+                              final selected = regEvents.firstWhere(
+                                (e) => e.event.id.toString() == value,
                               );
+
                               setState(() {
-                                eventId = selectedEvent.id.toString();
-                                eventName = selectedEvent.name ?? '';
+                                eventId = selected.event.id.toString();
+                                eventName = selected.event.name;
                               });
+
                               context.read<GetLogTimeViewModel>().getLogTimeApi(
                                 context,
                                 eventId,
@@ -328,7 +333,16 @@ class _LogTimeScreenState extends State<LogTimeScreen> {
                       Expanded(
                         child:
                             timeLog.getLogLoading
-                                ? Center(child: CircularProgressIndicator())
+                                ? Center(
+                                  child: SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      color: AppColors.blackColor,
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                )
                                 : (timeLog.timeEntries == null ||
                                     timeLog.timeEntries!.isEmpty)
                                 ? Center(

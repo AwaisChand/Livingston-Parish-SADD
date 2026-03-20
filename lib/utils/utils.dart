@@ -5,6 +5,7 @@ import 'package:dp_sad/Screens/AuthScreens/RegisterScreen/register_screen.dart';
 import 'package:dp_sad/Screens/HomeScreen/home_screen.dart';
 import 'package:dp_sad/Screens/PointsScreen/points_screen.dart';
 import 'package:dp_sad/view_model/auth_view_model/auth_view_model.dart';
+import 'package:dp_sad/view_model/dashboard_view_model/dashboard_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
@@ -23,13 +24,14 @@ class Utils {
   static toastMessage(String message) {
     Fluttertoast.showToast(
       msg: message,
-      textColor: Colors.black,
-      backgroundColor: Colors.blue,
+      textColor: AppColors.whiteColor,
+      backgroundColor: AppColors.primaryColor
     );
   }
 
   static Widget drawer(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
+    final dashboardViewModel = context.watch<DashboardViewModel>();
     return Consumer<AuthViewModel>(
       builder: (context, authProvider, _) {
         return Drawer(
@@ -125,30 +127,34 @@ class Utils {
                     style: AppTextStyle.k18Bold400TextStyle,
                   ),
                   onTap: () async {
-                    final prefs = await SharedPreferences.getInstance();
-                    String? eventId = prefs.getString("event_id");
-                    String? eventName = prefs.getString("event_name");
+                    final dashboardVM = context.read<DashboardViewModel>();
 
-                    if (eventId == null ||
-                        eventId.isEmpty ||
-                        eventName == null ||
-                        eventName.isEmpty) {
-                      // ❌ Not registered – show message
-                      Utils.toastMessage("Please register an event first");
-                    } else {
-                      // ✅ Event registered – navigate
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => LogTimeScreen(
-                                initialEventId: eventId,
-                                initialEventName: eventName,
-                              ),
-                        ),
-                      );
-                      debugPrint("Printed values: $eventId $eventName");
+                    /// If data not loaded yet → fetch it first
+                    if (dashboardVM.dashboardModel == null) {
+                      await dashboardVM.getDashboardData(context, showMessage: false);
                     }
+
+                    final registeredEvents =
+                        dashboardVM.dashboardModel?.data.registeredEventList ?? [];
+
+                    /// Still empty
+                    if (registeredEvents.isEmpty) {
+                      Utils.toastMessage("Please register an event first");
+                      return;
+                    }
+
+                    /// Navigate
+                    final event = registeredEvents.first.event;
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LogTimeScreen(
+                          initialEventId: event.id.toString(),
+                          initialEventName: event.name,
+                        ),
+                      ),
+                    );
                   },
                 ),
               ],
@@ -171,7 +177,7 @@ class Utils {
                                   authProvider.userModel!.image!.isNotEmpty
                               ? CachedNetworkImage(
                                 imageUrl:
-                                    "https://lpsadd.thetechnologies.net/${authProvider.userModel!.image!}",
+                                    "https://applpsadd.com/public/${authProvider.userModel!.image!}",
                                 fit: BoxFit.cover,
                                 placeholder:
                                     (context, url) => Center(

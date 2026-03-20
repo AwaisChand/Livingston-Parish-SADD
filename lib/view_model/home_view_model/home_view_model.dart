@@ -44,6 +44,11 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  set filterResources(List<Resources>? value) {
+    _filterResources = value;
+    notifyListeners();
+  }
+
   bool _dashboardLoading = false;
   bool get dashboardLoading => _dashboardLoading;
 
@@ -51,6 +56,7 @@ class HomeViewModel extends ChangeNotifier {
     _dashboardLoading = setLoading;
     notifyListeners();
   }
+
 
   Future<void> getDashboardData(BuildContext context) async {
     homeLoading = true;

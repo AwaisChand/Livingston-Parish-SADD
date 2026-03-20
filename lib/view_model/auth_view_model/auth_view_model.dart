@@ -11,6 +11,7 @@ import 'package:dp_sad/repository/auth_repository/auth_repository.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -133,39 +134,20 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  /// Get FCM token with retries (APNs on iOS can take a moment to be ready).
-  /// Returns null if unavailable (e.g. iOS Simulator or APNs not ready).
-  Future<String?> _getFCMTokenWithRetry({int maxAttempts = 3}) async {
-    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
-      try {
-        final token = await FirebaseMessaging.instance.getToken();
-        if (token != null && token.isNotEmpty) return token;
-      } catch (_) {
-        // APNs not ready yet — ignore and retry
-      }
-      if (attempt < maxAttempts) {
-        await Future.delayed(Duration(seconds: attempt));
-      }
-    }
-    return null;
-  }
-
   ///Login Api
   Future<void> loginApi(BuildContext context, dynamic data) async {
     loading = true;
     try {
       debugPrint("login user with data: $data");
 
-      // Get FCM token (retry a few times; on iOS APNs may not be ready immediately)
-      String? deviceToken = await _getFCMTokenWithRetry();
-      if (deviceToken != null && kDebugMode) {
-        debugPrint("Device Token: $deviceToken");
-      }
-      // Backend requires non-empty device_token; use placeholder if not available yet.
-      // App will send real token via storedDeviceTokenApi when it becomes available.
-      data["device_token"] = deviceToken ?? 'pending';
+      // ✅ Step 1: Get FCM device token
+      String? deviceToken = await FirebaseMessaging.instance.getToken();
+      debugPrint("Device Token: $deviceToken");
 
-      // Send login request
+      // ✅ Step 2: Add token to your API data
+      data["device_token"] = deviceToken;
+
+      // ✅ Step 3: Send request
       final response = await authRepository.loginUser(data);
 
       if (response["status"].toString() == "1") {
@@ -201,7 +183,9 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final data = {"device_token": deviceToken};
+      final data = {
+        "device_token": deviceToken,
+      };
 
       final response = await authRepository.storedDeviceTokenRepo(data);
 
@@ -474,46 +458,52 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   ///Register Event Api
-  Future<void> registerEvent(BuildContext context, dynamic data) async {
+  Future<void> registerEvent(BuildContext context, dynamic requestData) async {
     loading = true;
     try {
-      debugPrint("Registering event with data: $data");
+      debugPrint("Registering event with data: $requestData");
 
-      final response = await authRepository.registerEvent(data);
+      final response = await authRepository.registerEvent(requestData);
 
-      if (response.status == "1") {
-        Utils.toastMessage("${response.message}");
+      // ✅ Case 1: Registration successful and event data exists
+      if (response.status == "1" && response.data?.event != null) {
+        final event = response.data!.event!;
 
-        _registerEventModel = response;
+        final registeredEventId = event.id?.toString() ?? '';
+        final registeredEventName = event.name ?? '';
 
-        String registeredEventId =
-            _registerEventModel?.data?.event?.id.toString() ?? '';
-        String registerEventName =
-            _registerEventModel?.data?.event?.name.toString() ?? '';
-
-        // ✅ Save to SharedPreferences
+        // Save to SharedPreferences
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString("event_id", registeredEventId);
-        await prefs.setString("event_name", registerEventName);
+        await prefs.setString("event_name", registeredEventName);
 
-        // ✅ Navigate to LogTimeScreen
+        Utils.toastMessage(response.message ?? "Event registered successfully");
+
+        // Navigate to LogTimeScreen
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder:
-                (context) => LogTimeScreen(
-                  initialEventId: registeredEventId,
-                  initialEventName: registerEventName,
-                ),
+            builder: (_) => LogTimeScreen(
+              initialEventId: registeredEventId,
+              initialEventName: registeredEventName,
+            ),
           ),
         );
-      } else {
-        Utils.toastMessage(response.message ?? '');
+      }
+      // ✅ Case 2: API returned status = 0 or empty data
+      else {
+        // Prefer message from server
+        final message = response.message ?? "You have already registered for this event";
+
+        // Show toast
+        Utils.toastMessage(message);
+
+        debugPrint("RegisterEvent notice: $message");
+
+        // Optionally, if you want to navigate even on "already registered", you can handle here
       }
 
-      if (kDebugMode) {
-        debugPrint("Register Event API Response: $response");
-      }
+      if (kDebugMode) debugPrint("Register Event API Response: $response");
     } catch (e) {
       debugPrint("RegisterEvent error: $e");
       Utils.toastMessage("Error: ${e.toString()}");
@@ -521,7 +511,6 @@ class AuthViewModel extends ChangeNotifier {
       loading = false;
     }
   }
-
   ///Handle session
   Future<void> checkLoginStatus(BuildContext context) async {
     await Future.delayed(Duration(seconds: 2)); // Splash delay
@@ -599,23 +588,19 @@ class AuthViewModel extends ChangeNotifier {
   Future<void> initFCMToken() async {
     try {
       await FirebaseMessaging.instance.requestPermission();
-      final token = await _getFCMTokenWithRetry(maxAttempts: 4);
-      if (token != null && token.isNotEmpty) {
-        if (kDebugMode) debugPrint("✅ FCM Token synced: $token");
+
+      // Small delay to avoid SERVICE_NOT_AVAILABLE
+      await Future.delayed(const Duration(seconds: 2));
+
+      final token = await FirebaseMessaging.instance.getToken();
+      debugPrint("✅ FCM Token: $token");
+
+      if (token != null) {
         await storedDeviceTokenApi(token);
-      } else if (kDebugMode) {
-        debugPrint(
-          'FCM token not available (e.g. simulator or APNs not ready). '
-          'Real token will sync when available.',
-        );
       }
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint(
-          'FCM token sync skipped: $e. '
-          'On a real device with push enabled, token will sync on next launch.',
-        );
-      }
+      debugPrint("❌ FCM token error: $e");
     }
   }
+
 }

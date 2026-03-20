@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../utils/utils.dart';
+import '../../view_model/auth_view_model/auth_view_model.dart';
 
 class MyEventsScreen extends StatefulWidget {
   const MyEventsScreen({super.key});
@@ -30,7 +31,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // final authProvider = context.watch<AuthViewModel>();
+    final authProvider = context.watch<AuthViewModel>();
     return Consumer<MyEventsViewModel>(
       builder: (context, myEvents, _) {
         return Scaffold(
@@ -179,10 +180,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                                                 ),
                                                 ResourceDetailPopup(
                                                   detailText:
-                                                      myEventsData
-                                                          .event
-                                                          ?.description ??
-                                                      '',
+                                                      "${myEventsData.event?.description ?? ''}",
                                                 ),
                                               ],
                                             ),

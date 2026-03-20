@@ -134,35 +134,57 @@ class _ViewInfoScreenState extends State<ViewInfoScreen> {
                           border: Border.all(color: Colors.white, width: 3),
                         ),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(getHeight(50)),
-                          child:
-                              auth.pickedImage != null
-                                  ? Image.file(
-                                    auth.pickedImage!,
-                                    fit: BoxFit.cover,
-                                  )
-                                  : auth.userModel?.image != null &&
-                                      auth.userModel!.image!.isNotEmpty
-                                  ? CachedNetworkImage(
-                                    imageUrl:
-                                        "https://lpsadd.thetechnologies.net/${auth.userModel!.image!}",
-                                    fit: BoxFit.cover,
-                                    placeholder:
-                                        (context, url) => Center(
-                                          child: CircularProgressIndicator(
-                                            color: AppColors.blackColor,
-                                          ),
-                                        ),
-                                    errorWidget:
-                                        (context, url, error) => Image.asset(
-                                          AppAssets.avatarImage,
-                                          fit: BoxFit.cover,
-                                        ),
-                                  )
-                                  : Image.asset(
-                                    AppAssets.avatarImage,
-                                    fit: BoxFit.cover,
+                          borderRadius: BorderRadius.circular(getHeight(60)),
+                          child: Builder(
+                            builder: (context) {
+                              final image = auth.userModel?.image;
+
+                              // Debug print (optional)
+                              print("User Image: $image");
+
+                              // If user picked image from device
+                              if (auth.pickedImage != null) {
+                                return Image.file(
+                                  auth.pickedImage!,
+                                  fit: BoxFit.cover,
+                                );
+                              }
+
+                              // If API image exists
+                              if (image != null && image.isNotEmpty) {
+                                final imageUrl = image.startsWith("http")
+                                    ? image
+                                    : "https://applpsadd.com/public/$image";
+
+                                return CachedNetworkImage(
+                                  imageUrl: imageUrl,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => Center(
+                                    child: SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: AppColors.blackColor,
+                                      ),
+                                    ),
                                   ),
+                                  errorWidget: (context, url, error) {
+                                    return Image.asset(
+                                      AppAssets.avatarImage,
+                                      fit: BoxFit.cover,
+                                    );
+                                  },
+                                );
+                              }
+
+                              // Default avatar
+                              return Image.asset(
+                                AppAssets.avatarImage,
+                                fit: BoxFit.cover,
+                              );
+                            },
+                          ),
                         ),
                       ),
 
@@ -181,7 +203,7 @@ class _ViewInfoScreenState extends State<ViewInfoScreen> {
                               color: AppColors.deepPurpleColor,
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(
+                            child: const Icon(
                               Icons.edit,
                               color: Colors.white,
                               size: 15,
@@ -193,7 +215,6 @@ class _ViewInfoScreenState extends State<ViewInfoScreen> {
                   ),
                 ),
               ),
-
               // Info form
               Positioned(
                 bottom: 0,

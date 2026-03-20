@@ -1,6 +1,8 @@
 import 'package:dp_sad/Common/Config/sizedbox_extension.dart';
+import 'package:dp_sad/Screens/EventDetailcreen/event_detail_screen.dart';
 import 'package:dp_sad/view_model/dashboard_view_model/dashboard_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 

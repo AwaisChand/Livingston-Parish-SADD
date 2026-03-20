@@ -48,7 +48,7 @@ class AllEventsScreen extends StatefulWidget {
 class _AllEventsScreenState extends State<AllEventsScreen> {
   final TextEditingController _searchController = TextEditingController();
   int? _selectedCategoryId;
-  String? selectedCategoryName;
+  String? _selectedCategoryName;
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -91,13 +91,41 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
     );
   }
 
+  void _applyFilters() {
+    final filterProvider = context.read<HomeViewModel>();
+    final eventVM = context.read<AllEventsViewModel>();
+
+    final search = _searchController.text.trim();
+    final categoryId = _selectedCategoryId;
+
+    final isSearching = search.isNotEmpty;
+    final isCategorySelected =
+        categoryId != null && categoryId != 0;
+
+    // ✅ RESET → ALL EVENTS
+    if (!isSearching && !isCategorySelected) {
+      filterProvider.searchQuery = '';
+      filterProvider.filterEvents = null;
+      eventVM.eventDetailApi(context);
+      return;
+    }
+
+    // ✅ APPLY FILTER
+    filterProvider.searchQuery = search;
+
+    filterProvider.eventFilterApi(context, {
+      "search": search.isNotEmpty ? search : "",
+      "event_category_id": isCategorySelected ? categoryId : null,
+    });
+  }
   @override
   Widget build(BuildContext context) {
     final filterEvents = context.watch<HomeViewModel>();
     final allEvents = context.watch<AllEventsViewModel>();
 
     final isFiltering =
-        filterEvents.searchQuery.isNotEmpty || _selectedCategoryId != null;
+        filterEvents.searchQuery.isNotEmpty ||
+            (_selectedCategoryId != null && _selectedCategoryId != 0);
     final isLoading =
         allEvents.eventDetailLoading || filterEvents.dashboardLoading;
 
@@ -179,11 +207,13 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
             padding: EdgeInsets.only(right: getWidth(20), left: getWidth(20)),
             child: Consumer<HomeViewModel>(
               builder: (context, homeVM, _) {
-                final categories = homeVM.homeModel?.data?.eventCategories;
+                final categories = homeVM.homeModel?.data?.eventCategories ?? [];
+
                 return DropdownButtonFormField<int>(
-                  initialValue: _selectedCategoryId,
+                  value: _selectedCategoryId ?? 0,
                   iconEnabledColor: AppColors.whiteColor,
                   isExpanded: true,
+
                   hint: Text(
                     "Select Event Category",
                     overflow: TextOverflow.ellipsis,
@@ -192,30 +222,38 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
                       color: AppColors.whiteColor,
                     ),
                   ),
-                  items:
-                      categories?.map<DropdownMenuItem<int>>((category) {
-                        return DropdownMenuItem<int>(
-                          value: category.id,
-                          child: Text(
-                            category.name ?? '',
-                            style: AppTextStyle.k15Bold400TextStyle.copyWith(
-                              color: AppColors.whiteColor,
-                            ),
+
+                  items: [
+                    // ✅ ALL EVENTS OPTION
+                     DropdownMenuItem<int>(
+                      value: 0,
+                      child: Text("All Events",style: AppTextStyle.k15Bold400TextStyle.copyWith(
+                        color: AppColors.whiteColor,
+                      ),),
+                    ),
+
+                    // ✅ Categories
+                    ...categories.map<DropdownMenuItem<int>>((category) {
+                      return DropdownMenuItem<int>(
+                        value: category.id,
+                        child: Text(
+                          category.name ?? '',
+                          style: AppTextStyle.k15Bold400TextStyle.copyWith(
+                            color: AppColors.whiteColor,
                           ),
-                        );
-                      }).toList(),
+                        ),
+                      );
+                    }).toList(),
+                  ],
+
                   onChanged: (value) {
                     setState(() {
-                      _selectedCategoryId = value;
-                      selectedCategoryName =
-                          categories?.firstWhere((c) => c.id == value).name;
+                      _selectedCategoryId = value ?? 0;
                     });
-                    final filterProvider = context.read<HomeViewModel>();
-                    filterProvider.eventFilterApi(context, {
-                      "event_category_id": _selectedCategoryId,
-                      "search": _searchController.text.trim(),
-                    });
+
+                    _applyFilters();
                   },
+
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: AppColors.primaryColor,
@@ -232,20 +270,31 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
                       borderSide: BorderSide(color: AppColors.deepPurpleColor),
                     ),
                   ),
+
                   dropdownColor: AppColors.primaryColor,
                   icon: const Icon(Icons.arrow_drop_down),
+
+                  // ✅ Selected text UI
                   selectedItemBuilder: (context) {
-                    return categories?.map<Widget>((category) {
-                          return Text(
-                            category.name ?? '',
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                            style: AppTextStyle.k15Bold400TextStyle.copyWith(
-                              color: AppColors.whiteColor,
-                            ),
-                          );
-                        }).toList() ??
-                        [];
+                    return [
+                      Text(
+                        "All Events",
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyle.k15Bold400TextStyle.copyWith(
+                          color: AppColors.whiteColor,
+                        ),
+                      ),
+                      ...categories.map<Widget>((category) {
+                        return Text(
+                          category.name ?? '',
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: AppTextStyle.k15Bold400TextStyle.copyWith(
+                            color: AppColors.whiteColor,
+                          ),
+                        );
+                      }).toList(),
+                    ];
                   },
                 );
               },
@@ -269,12 +318,16 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
               builder: (_) {
                 if (isLoading) {
                   return Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.deepPurpleColor,
-                    ),
-                  );
+                      child: SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: AppColors.blackColor,
+                          strokeWidth: 2,
+                        ),
+                      ),
+                    );
                 }
-
                 if (showEmpty) {
                   return Center(
                     child: Text(
@@ -286,6 +339,19 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
                   );
                 }
 
+                if (!isLoading && dataList.isEmpty) {
+                  return Center(
+                    child: Text(
+                      "No Events Available",
+                      style: AppTextStyle.k20Bold700TextStyle.copyWith(
+                        color: AppColors.deepPurpleColor,
+                      ),
+                    ),
+                  );
+                }
+
+                final categories = filterEvents.homeModel?.data?.eventCategories ?? [];
+
                 return AlignedGridView.count(
                   crossAxisCount: 2,
                   mainAxisSpacing: 15,
@@ -293,27 +359,27 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
                   itemCount: dataList.length,
                   physics: const BouncingScrollPhysics(),
                   itemBuilder: (context, index) {
-                    final DisplayEvent displayItem = toDisplayEvent(
-                      dataList[index],
-                    );
+                    final DisplayEvent displayItem = toDisplayEvent(dataList[index]);
                     final HomeEvents homeEventItem =
-                        convertDisplayEventToHomeEvent(displayItem);
+                    convertDisplayEventToHomeEvent(displayItem);
+
+                    // Safely pick the category
+                    final eventCategory = (index < categories.length)
+                        ? categories[index]
+                        : categories.isNotEmpty
+                        ? categories[0]
+                        : null;
 
                     return GestureDetector(
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder:
-                                (context) => EventDetailScreen(
-                                  index: index,
-                                  eventsDetail: homeEventItem,
-                                  eventCategory:
-                                      filterEvents
-                                          .homeModel!
-                                          .data!
-                                          .eventCategories![index],
-                                ),
+                            builder: (context) => EventDetailScreen(
+                              index: index,
+                              eventsDetail: homeEventItem,
+                              eventCategory: eventCategory!,
+                            ),
                           ),
                         );
                       },
@@ -321,54 +387,51 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
                         aspectRatio: 0.9,
                         child: CachedNetworkImage(
                           imageUrl: "${AppUrl.baseUrl}/${displayItem.image}",
-                          imageBuilder:
-                              (context, imageProvider) => Container(
-                                width: getWidth(170),
-                                margin: EdgeInsets.only(
-                                  left: getWidth(20),
-                                  right: getWidth(20),
-                                ),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  image: DecorationImage(
-                                    image: imageProvider,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                child: _buildEventFooter(displayItem),
+                          imageBuilder: (context, imageProvider) => Container(
+                            width: getWidth(170),
+                            margin: EdgeInsets.symmetric(horizontal: getWidth(20)),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              image: DecorationImage(
+                                image: imageProvider,
+                                fit: BoxFit.cover,
                               ),
-                          placeholder:
-                              (context, url) => Shimmer.fromColors(
-                                baseColor: Colors.grey[300]!,
-                                highlightColor: Colors.grey[100]!,
-                                child: Container(
-                                  width: getWidth(170),
-                                  margin: EdgeInsets.only(
-                                    left: getWidth(20),
-                                    right: getWidth(20),
-                                  ),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12),
-                                    color: Colors.white,
-                                  ),
-                                ),
+                            ),
+                            child: _buildEventFooter(displayItem),
+                          ),
+                          placeholder: (context, url) => Shimmer.fromColors(
+                            baseColor: Colors.grey[300]!,
+                            highlightColor: Colors.grey[100]!,
+                            child: Container(
+                              width: getWidth(170),
+                              margin: EdgeInsets.symmetric(horizontal: getWidth(20)),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                color: Colors.white,
                               ),
-                          errorWidget:
-                              (context, url, error) => Container(
-                                width: getWidth(170),
-                                margin: EdgeInsets.only(
-                                  left: getWidth(20),
-                                  right: getWidth(20),
-                                ),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  image: DecorationImage(
-                                    image: AssetImage(AppAssets.resourcesImage),
-                                    fit: BoxFit.cover,
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            width: getWidth(170),
+                            height: getHeight(200),
+                            margin: EdgeInsets.symmetric(horizontal: getWidth(20)),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              color: Colors.white,
+                            ),
+                            child: Stack(
+                              children: [
+                                Center(
+                                  child: Image.asset(
+                                    AppAssets.logo,
+                                    height: 90,
+                                    fit: BoxFit.contain,
                                   ),
                                 ),
-                                child: _buildEventFooter(displayItem),
-                              ),
+                                _buildEventFooter(displayItem),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     );
@@ -376,8 +439,7 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
                 );
               },
             ),
-          ),
-        ],
+          )        ],
       ),
     );
   }

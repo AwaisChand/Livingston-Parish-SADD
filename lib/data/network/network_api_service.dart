@@ -1,12 +1,9 @@
-// ignore_for_file: depend_on_referenced_packages
-
 import 'dart:convert';
 import 'dart:io';
-
+import 'package:path/path.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
-import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../Models/login_model/login_model.dart';
@@ -28,7 +25,7 @@ class NetworkApiService extends BaseApiServices {
         },
       );
       responseJson = returnResponse(response);
-      debugPrint("Raw response body: ${response.body}"); // Add this line
+      debugPrint("Raw response body: ${response.body}");  // Add this line
     } on SocketException {
       throw FetchDataException("No Internet Connection");
     }
@@ -55,13 +52,13 @@ class NetworkApiService extends BaseApiServices {
     try {
       final response = await http
           .post(
-            Uri.parse(url),
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            body: jsonEncode(data),
-          )
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(data),
+      )
           .timeout(const Duration(seconds: 30));
 
       debugPrint("login url === $url");
@@ -77,6 +74,7 @@ class NetworkApiService extends BaseApiServices {
           final email = loginData.user.email;
           final phone = loginData.user.phoneNumber;
 
+
           NetworkApiService().setToken(token);
           debugPrint("login token === $token");
 
@@ -85,6 +83,7 @@ class NetworkApiService extends BaseApiServices {
           await prefs.setString("userId", userId.toString());
           await prefs.setString("email", email);
           await prefs.setString("phone", phone);
+
 
           debugPrint("User info saved in SharedPreferences");
         }
@@ -99,7 +98,6 @@ class NetworkApiService extends BaseApiServices {
 
     return responseJson;
   }
-
   @override
   Future<dynamic> postSignUpRequest(String url, dynamic data) async {
     try {
@@ -145,14 +143,14 @@ class NetworkApiService extends BaseApiServices {
       String? token = await NetworkApiService().getToken();
       final response = await http
           .post(
-            Uri.parse(url),
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-            body: jsonEncode(data),
-          )
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(data),
+      )
           .timeout(const Duration(seconds: 30));
 
       debugPrint("Url === $url");
@@ -171,10 +169,10 @@ class NetworkApiService extends BaseApiServices {
 
   @override
   Future<dynamic> multipartPostRequest(
-    String url, {
-    Map<String, dynamic>? fields,
-    Map<String, File>? files,
-  }) async {
+      String url, {
+        Map<String, dynamic>? fields,
+        Map<String, File>? files,
+      }) async {
     try {
       String? token = await getToken();
       final uri = Uri.parse(url);
@@ -261,6 +259,7 @@ class NetworkApiService extends BaseApiServices {
       rethrow;
     }
   }
+
 
   dynamic returnResponse(http.Response response) {
     switch (response.statusCode) {

@@ -120,15 +120,21 @@ class EventDetailScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                  errorWidget:
-                      (context, url, error) => ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Image(
-                          image: AssetImage(AppAssets.activeEventImage),
-                          height: getHeight(180),
-                          width: double.infinity,
+                  errorWidget: (context, url, error) => ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      height: getHeight(180),
+                      width: double.infinity,
+                      color: Colors.grey.shade100, // optional light background
+                      child: Center(
+                        child: Image.asset(
+                          AppAssets.logo,
+                          height: 130,
+                          fit: BoxFit.contain,
                         ),
                       ),
+                    ),
+                  ),
                 ),
               ),
               25.sh,

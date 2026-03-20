@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dp_sad/Common/AppAssets/app_assets.dart';
 import 'package:dp_sad/Common/AppColors/app_colors.dart';
+import 'package:dp_sad/Common/AppTextField/app_text_field.dart';
 import 'package:dp_sad/Common/AppTextStyle/app_text_style.dart';
 import 'package:dp_sad/Common/Config/size_config.dart';
 import 'package:dp_sad/Common/Config/sizedbox_extension.dart';
@@ -12,10 +13,10 @@ import 'package:dp_sad/res/app_url/app_url.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
-
 import '../../utils/utils.dart';
 import '../../view_model/auth_view_model/auth_view_model.dart';
 import '../../view_model/home_view_model/home_view_model.dart';
+import 'dialog_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,7 +27,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final TextEditingController searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   bool isSearching = false;
 
   @override
@@ -106,6 +107,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SliverToBoxAdapter(child: SizedBox(height: 20)),
                 dashBoardProvider.dashboardLoading
                     ? _buildShimmerGridSliver()
+                    : resources.isEmpty
+                    ? SliverToBoxAdapter(
+                      child: Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20),
+                          child: Text(
+                            "No Resources Available Yet",
+                            style: AppTextStyle.k18Bold400TextStyle.copyWith(
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
                     : _buildResourcesGrid(resources, resourceCategory, context),
                 const SliverToBoxAdapter(child: SizedBox(height: 15)),
                 SliverToBoxAdapter(
@@ -124,6 +139,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 dashBoardProvider.dashboardLoading
                     ? _buildShimmerGridSliver()
+                    : events.isEmpty
+                    ? SliverToBoxAdapter(
+                      child: Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20),
+                          child: Text(
+                            "No Active Events Available Yet",
+                            style: AppTextStyle.k18Bold400TextStyle.copyWith(
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
                     : _buildEventsGrid(events, eventCategory, context),
 
                 const SliverToBoxAdapter(child: SizedBox(height: 40)),
@@ -146,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
         delegate: SliverChildBuilderDelegate((context, index) {
           final resource = resources[index];
           final resourceCategory =
-              index < category.length ? category[index] : {}; // ✅ safe fallback
+              index < category.length ? category[index] : {};
 
           return GestureDetector(
             onTap:
@@ -162,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
             child: CachedNetworkImage(
-              imageUrl: "${AppUrl.baseUrl}/${resource.image}",
+              imageUrl: "${AppUrl.baseUrl}${resource.image}",
               imageBuilder:
                   (context, imageProvider) => _buildCard(
                     backgroundWidget: Image(
@@ -185,7 +214,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
               errorWidget:
                   (context, url, error) => _buildCard(
-                    backgroundWidget: Image.asset(AppAssets.resourcesImage),
+                    backgroundWidget: Center(
+                      child: Image.asset(
+                        AppAssets.logo,
+                        height: 90,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
                     title: resource.title ?? '',
                     keywords: resource.keywords ?? '',
                   ),
@@ -228,38 +263,37 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
             child: CachedNetworkImage(
               imageUrl: "${AppUrl.baseUrl}/${event.image}",
+
+              /// ✅ When image loads successfully
               imageBuilder:
-                  (context, imageProvider) => Container(
+                  (context, imageProvider) => _buildEventCard(
+                    background: DecorationImage(
+                      image: imageProvider,
+                      fit: BoxFit.cover,
+                    ),
+                    event: event,
+                  ),
+
+              /// ✅ Loading shimmer
+              placeholder:
+                  (context, url) => Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      image: DecorationImage(
-                        image: imageProvider,
-                        fit: BoxFit.cover,
+                      color: Colors.grey.shade300,
+                    ),
+                  ),
+
+              /// ✅ Error handling (logo centered)
+              errorWidget:
+                  (context, url, error) => _buildEventCard(
+                    backgroundWidget: Center(
+                      child: Image.asset(
+                        AppAssets.logo,
+                        height: 70, // 👈 control logo size here
+                        fit: BoxFit.contain,
                       ),
                     ),
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryColor,
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(12),
-                            bottomRight: Radius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          "${event.name}\n${event.description}",
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyle.k12Bold400TextStyle.copyWith(
-                            color: AppColors.whiteColor,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
+                    event: event,
                   ),
             ),
           );
@@ -270,6 +304,52 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisSpacing: getWidth(10),
           childAspectRatio: 0.8,
         ),
+      ),
+    );
+  }
+
+  Widget _buildEventCard({
+    DecorationImage? background,
+    Widget? backgroundWidget,
+    required dynamic event,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        image: background,
+        color: background == null ? Colors.white : null,
+      ),
+      child: Stack(
+        children: [
+          /// ✅ If error, show custom widget (logo)
+          if (backgroundWidget != null)
+            Positioned.fill(child: backgroundWidget),
+
+          /// ✅ Footer (always visible)
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(12),
+                  bottomRight: Radius.circular(12),
+                ),
+              ),
+              child: Text(
+                "${event.name}\n${event.description}",
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyle.k12Bold400TextStyle.copyWith(
+                  color: AppColors.whiteColor,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

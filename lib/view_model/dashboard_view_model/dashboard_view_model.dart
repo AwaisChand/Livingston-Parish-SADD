@@ -11,6 +11,7 @@ import '../auth_view_model/auth_view_model.dart';
 class DashboardViewModel extends ChangeNotifier {
   final DashboardRepository authRepository = DashboardRepository();
 
+
   DashboardModel? _dashboardModel;
   DashboardModel? get dashboardModel => _dashboardModel;
 
@@ -37,7 +38,7 @@ class DashboardViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> getDashboardData(BuildContext context) async {
+  Future<void> getDashboardData(BuildContext context, {bool showMessage = false}) async {
     dashboard = true;
     try {
       final response = await authRepository.dashBoard();
@@ -47,23 +48,24 @@ class DashboardViewModel extends ChangeNotifier {
         _dashboardModel = response;
         _registerEvent = response.data.registeredEventList;
 
-        // Show all if logged in, otherwise filter where isShow == 1
         final allCurrentWeekEvents = response.data.currentWeekEvents;
         final allActiveEvents = response.data.activeEvents;
 
-        _event =
-            authProvider.isLoggedIn
-                ? allCurrentWeekEvents
-                : allCurrentWeekEvents.where((e) => e.isShow == 1).toList();
+        _event = authProvider.isLoggedIn
+            ? allCurrentWeekEvents
+            : allCurrentWeekEvents.where((e) => e.isShow == 1).toList();
 
-        _activeEvents =
-            authProvider.isLoggedIn
-                ? allActiveEvents
-                : allActiveEvents.where((e) => e.isShow == 1).toList();
+        _activeEvents = authProvider.isLoggedIn
+            ? allActiveEvents
+            : allActiveEvents.where((e) => e.isShow == 1).toList();
 
-        Utils.toastMessage(response.message);
+        if (showMessage) {
+          Utils.toastMessage(response.message);
+        }
       } else {
-        Utils.toastMessage(response.message);
+        if (showMessage) {
+          Utils.toastMessage(response.message);
+        }
       }
 
       if (kDebugMode) {
@@ -72,12 +74,13 @@ class DashboardViewModel extends ChangeNotifier {
     } catch (e, stackTrace) {
       debugPrint("Dashboard error: $e");
       debugPrint("Dashboard stack error: $stackTrace");
-      Utils.toastMessage("Error: ${e.toString()}");
+      if (showMessage) {
+        Utils.toastMessage("Error: ${e.toString()}");
+      }
     } finally {
       dashboard = false;
     }
   }
-
   Future<void> getPointsAPi(BuildContext context) async {
     dashboard = true;
     try {
@@ -102,4 +105,5 @@ class DashboardViewModel extends ChangeNotifier {
       dashboard = false;
     }
   }
+
 }

@@ -1,5 +1,6 @@
 import 'package:dp_sad/Common/Config/sizedbox_extension.dart';
 import 'package:dp_sad/view_model/dashboard_view_model/dashboard_view_model.dart';
+import 'package:dp_sad/view_model/home_view_model/home_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:intl/intl.dart';
@@ -10,6 +11,8 @@ import '../../Common/AppColors/app_colors.dart';
 import '../../Common/AppTextStyle/app_text_style.dart';
 import '../../Common/Config/size_config.dart';
 import '../../utils/utils.dart';
+import '../../view_model/auth_view_model/auth_view_model.dart';
+import '../EventDetailcreen/event_detail_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -26,7 +29,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final dashboardProvider = context.read<DashboardViewModel>();
-      dashboardProvider.getDashboardData(context);
+      dashboardProvider.getDashboardData(context, showMessage: true);
     });
   }
 
@@ -37,7 +40,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // final authProvider = context.watch<AuthViewModel>();
+    final homeProvider = context.watch<HomeViewModel>();
     return Consumer<DashboardViewModel>(
       builder: (context, dashboard, _) {
         return Scaffold(
@@ -173,131 +176,73 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                 .dashboardModel
                                                 ?.data
                                                 .registeredEventList[index];
-                                        return Container(
-                                          height: getHeight(230),
-                                          padding: EdgeInsets.all(getWidth(10)),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.primaryColor,
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              _columnWidget(
-                                                "Name",
-                                                dashboardData?.event.name,
-                                              ),
-                                              5.sh,
-                                              _columnWidget(
-                                                "Event Date",
-                                                "${dashboardData?.event.eventDate}",
-                                              ),
-                                              5.sh,
-                                              _columnWidget(
-                                                "Start Time",
-                                                formatTime(
-                                                  dashboardData
-                                                          ?.event
-                                                          .startTime ??
-                                                      '',
+                                        final categories =
+                                            homeProvider.homeModel?.data?.eventCategories ?? [];
+
+                                        final eventCategory = (index < categories.length)
+                                            ? categories[index]
+                                            : categories.isNotEmpty
+                                            ? categories.first
+                                            : null;
+                                        return GestureDetector(
+                                          onTap: (){
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder:
+                                                    (_) => EventDetailScreen(
+                                                    index: index,
+                                                    eventsDetail:
+                                                    dashboardData?.event,
+                                                    eventCategory: eventCategory!
                                                 ),
                                               ),
-                                              5.sh,
-                                              _columnWidget(
-                                                "Description",
-                                                "${dashboardData?.event.description}",
+                                            );
+                                          },
+                                          child: Container(
+                                            height: getHeight(230),
+                                            padding: EdgeInsets.all(getWidth(10)),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.primaryColor,
+                                              borderRadius: BorderRadius.circular(
+                                                10,
                                               ),
-                                              5.sh,
-                                              _columnWidget(
-                                                "Location",
-                                                "${dashboardData?.event.location}",
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                25.sh,
-                                Text(
-                                  "Active Events",
-                                  style: AppTextStyle.k20Bold700TextStyle,
-                                ),
-                                dashboard
-                                            .dashboardModel
-                                            ?.data
-                                            .activeEvents
-                                            .isEmpty ??
-                                        true
-                                    ? Center(
-                                      child: Text(
-                                        "No Active Events",
-                                        style: AppTextStyle.k18Bold400TextStyle
-                                            .copyWith(color: Colors.grey),
-                                      ),
-                                    )
-                                    : AlignedGridView.count(
-                                      crossAxisCount: 2,
-                                      mainAxisSpacing: 10,
-                                      crossAxisSpacing: 10,
-                                      shrinkWrap: true,
-                                      physics: NeverScrollableScrollPhysics(),
-                                      itemCount:
-                                          dashboard
-                                              .dashboardModel
-                                              ?.data
-                                              .activeEvents
-                                              .length ??
-                                          0,
-                                      itemBuilder: (context, index) {
-                                        final dashboardData =
-                                            dashboard
-                                                .dashboardModel
-                                                ?.data
-                                                .activeEvents[index];
-                                        return Container(
-                                          height: getHeight(210),
-                                          padding: EdgeInsets.all(getWidth(10)),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.primaryColor,
-                                            borderRadius: BorderRadius.circular(
-                                              10,
                                             ),
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              _columnWidget(
-                                                "Name",
-                                                "${dashboardData?.name}",
-                                              ),
-                                              5.sh,
-                                              _columnWidget(
-                                                "Due Date",
-                                                "${dashboardData?.eventDate}",
-                                              ),
-                                              5.sh,
-                                              _columnWidget(
-                                                "Time",
-                                                formatTime(
-                                                  dashboardData?.startTime ??
-                                                      '',
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                _columnWidget(
+                                                  "Name",
+                                                  dashboardData?.event.name,
                                                 ),
-                                              ),
-                                              5.sh,
-                                              _columnWidget(
-                                                "Description",
-                                                "${dashboardData?.description}",
-                                              ),
-                                              5.sh,
-                                              _columnWidget(
-                                                "Location",
-                                                "${dashboardData?.location}",
-                                              ),
-                                            ],
+                                                5.sh,
+                                                _columnWidget(
+                                                  "Event Date",
+                                                  "${dashboardData?.event.eventDate}",
+                                                ),
+                                                5.sh,
+                                                _columnWidget(
+                                                  "Start Time",
+                                                  formatTime(
+                                                    dashboardData
+                                                            ?.event
+                                                            .startTime ??
+                                                        '',
+                                                  ),
+                                                ),
+                                                5.sh,
+                                                _columnWidget(
+                                                  "Description",
+                                                  "${dashboardData?.event.description}",
+                                                ),
+                                                5.sh,
+                                                _columnWidget(
+                                                  "Location",
+                                                  "${dashboardData?.event.location}",
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         );
                                       },
@@ -339,47 +284,179 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                 .dashboardModel
                                                 ?.data
                                                 .currentWeekEvents[index];
-                                        return Container(
-                                          height: getHeight(210),
-                                          padding: EdgeInsets.all(getWidth(10)),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.primaryColor,
-                                            borderRadius: BorderRadius.circular(
-                                              10,
-                                            ),
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              _columnWidget(
-                                                "Name",
-                                                "${dashboardData?.name}",
-                                              ),
-                                              5.sh,
-                                              _columnWidget(
-                                                "Due Date",
-                                                "${dashboardData?.eventDate}",
-                                              ),
-                                              5.sh,
-                                              _columnWidget(
-                                                "Time",
-                                                formatTime(
-                                                  dashboardData?.startTime ??
-                                                      '',
+                                        final categories =
+                                            homeProvider.homeModel?.data?.eventCategories ?? [];
+
+                                        final eventCategory = (index < categories.length)
+                                            ? categories[index]
+                                            : categories.isNotEmpty
+                                            ? categories.first
+                                            : null;
+                                        return GestureDetector(
+                                          onTap: (){
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder:
+                                                    (_) => EventDetailScreen(
+                                                    index: index,
+                                                    eventsDetail:
+                                                    dashboardData,
+                                                    eventCategory: eventCategory!
                                                 ),
                                               ),
-                                              5.sh,
-                                              _columnWidget(
-                                                "Description",
-                                                "${dashboardData?.description}",
+                                            );
+                                          },
+                                          child: Container(
+                                            height: getHeight(210),
+                                            padding: EdgeInsets.all(getWidth(10)),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.primaryColor,
+                                              borderRadius: BorderRadius.circular(
+                                                10,
                                               ),
-                                              5.sh,
-                                              _columnWidget(
-                                                "Location",
-                                                "${dashboardData?.location}",
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                _columnWidget(
+                                                  "Name",
+                                                  "${dashboardData?.name}",
+                                                ),
+                                                5.sh,
+                                                _columnWidget(
+                                                  "Due Date",
+                                                  "${dashboardData?.eventDate}",
+                                                ),
+                                                5.sh,
+                                                _columnWidget(
+                                                  "Time",
+                                                  formatTime(
+                                                    dashboardData?.startTime ??
+                                                        '',
+                                                  ),
+                                                ),
+                                                5.sh,
+                                                _columnWidget(
+                                                  "Description",
+                                                  "${dashboardData?.description}",
+                                                ),
+                                                5.sh,
+                                                _columnWidget(
+                                                  "Location",
+                                                  "${dashboardData?.location}",
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+
+                                25.sh,
+                                Text(
+                                  "Active Events",
+                                  style: AppTextStyle.k20Bold700TextStyle,
+                                ),
+                                dashboard
+                                            .dashboardModel
+                                            ?.data
+                                            .activeEvents
+                                            .isEmpty ??
+                                        true
+                                    ? Center(
+                                      child: Text(
+                                        "No Active Events",
+                                        style: AppTextStyle.k18Bold400TextStyle
+                                            .copyWith(color: Colors.grey),
+                                      ),
+                                    )
+                                    : AlignedGridView.count(
+                                      crossAxisCount: 2,
+                                      mainAxisSpacing: 10,
+                                      crossAxisSpacing: 10,
+                                      shrinkWrap: true,
+                                      physics: NeverScrollableScrollPhysics(),
+                                      itemCount:
+                                          dashboard
+                                              .dashboardModel
+                                              ?.data
+                                              .activeEvents
+                                              .length ??
+                                          0,
+                                      itemBuilder: (context, index) {
+                                        final dashboardData =
+                                            dashboard
+                                                .dashboardModel
+                                                ?.data
+                                                .activeEvents[index];
+                                        final categories =
+                                            homeProvider.homeModel?.data?.eventCategories ?? [];
+
+                                        final eventCategory = (index < categories.length)
+                                            ? categories[index]
+                                            : categories.isNotEmpty
+                                            ? categories.first
+                                            : null;
+                                        return GestureDetector(
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder:
+                                                    (_) => EventDetailScreen(
+                                                      index: index,
+                                                      eventsDetail:
+                                                          dashboardData,
+                                                      eventCategory: eventCategory!
+                                                    ),
                                               ),
-                                            ],
+                                            );
+                                          },
+                                          child: Container(
+                                            height: getHeight(210),
+                                            padding: EdgeInsets.all(
+                                              getWidth(10),
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.primaryColor,
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                _columnWidget(
+                                                  "Name",
+                                                  "${dashboardData?.name}",
+                                                ),
+                                                5.sh,
+                                                _columnWidget(
+                                                  "Due Date",
+                                                  "${dashboardData?.eventDate}",
+                                                ),
+                                                5.sh,
+                                                _columnWidget(
+                                                  "Time",
+                                                  formatTime(
+                                                    dashboardData?.startTime ??
+                                                        '',
+                                                  ),
+                                                ),
+                                                5.sh,
+                                                _columnWidget(
+                                                  "Description",
+                                                  "${dashboardData?.description}",
+                                                ),
+                                                5.sh,
+                                                _columnWidget(
+                                                  "Location",
+                                                  "${dashboardData?.location}",
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         );
                                       },

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:provider/provider.dart';
 import '../../Common/AppColors/app_colors.dart';
 import '../../Common/Config/size_config.dart';
 import '../../view_model/home_view_model/home_view_model.dart';
