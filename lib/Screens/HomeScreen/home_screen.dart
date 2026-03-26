@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dp_sad/Common/AppAssets/app_assets.dart';
 import 'package:dp_sad/Common/AppColors/app_colors.dart';
-import 'package:dp_sad/Common/AppTextField/app_text_field.dart';
 import 'package:dp_sad/Common/AppTextStyle/app_text_style.dart';
 import 'package:dp_sad/Common/Config/size_config.dart';
 import 'package:dp_sad/Common/Config/sizedbox_extension.dart';
@@ -14,9 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../utils/utils.dart';
-import '../../view_model/auth_view_model/auth_view_model.dart';
 import '../../view_model/home_view_model/home_view_model.dart';
-import 'dialog_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,7 +24,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final TextEditingController _searchController = TextEditingController();
   bool isSearching = false;
 
   @override
@@ -35,8 +31,6 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HomeViewModel>().getDashboardData(context);
-      final authVM = context.read<AuthViewModel>();
-      authVM.initFCMToken();
     });
   }
 

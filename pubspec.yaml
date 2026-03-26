@@ -18,7 +18,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # of the product and file versions while build-number is used as the build suffix.
 
 # for ios versios
-version: 1.0.1+1
+version: 1.0.2+1
 
 # for android versios
 # version: 1.0.0+2
@@ -52,9 +52,8 @@ dependencies:
   shared_preferences: ^2.5.3
   path_provider: ^2.1.5
   firebase_core: ^4.1.1
-  flutter_local_notifications: ^19.4.2
   firebase_messaging: ^16.0.2
-  app_settings: ^6.1.1
+  flutter_local_notifications: ^19.4.2
   intl_phone_field: ^3.2.0
   intl: ^0.20.2
   open_file: ^3.5.10

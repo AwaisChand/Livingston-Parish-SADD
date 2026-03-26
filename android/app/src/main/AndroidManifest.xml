@@ -2,12 +2,19 @@
     package="com.lpsadd.apps">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:label="LPSADD"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="high_importance_channel" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_notification" />
 
         <activity
             android:name=".MainActivity"
@@ -22,11 +29,6 @@
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
-
-            <meta-data
-                android:name="com.google.firebase.messaging.default_notification_channel_id"
-                android:value="high_importance_channel"/>
-
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

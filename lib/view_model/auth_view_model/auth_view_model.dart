@@ -6,12 +6,11 @@ import 'package:dp_sad/Screens/AuthScreens/ResetPasswordScreen/reset_password_sc
 import 'package:dp_sad/Screens/AuthScreens/VerifyOtpScreen/verify_otp_screen.dart';
 import 'package:dp_sad/Screens/HomeScreen/home_screen.dart';
 import 'package:dp_sad/Screens/LogTimeScreen/log_time_screen.dart';
+import 'package:dp_sad/core/notifications/notification_service.dart';
 import 'package:dp_sad/data/network/network_api_service.dart';
 import 'package:dp_sad/repository/auth_repository/auth_repository.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -139,24 +138,21 @@ class AuthViewModel extends ChangeNotifier {
     loading = true;
     try {
       debugPrint("login user with data: $data");
+      try {
+        final String? deviceToken =
+            await NotificationService.instance.getFcmToken();
+        if (deviceToken != null && deviceToken.isNotEmpty) {
+          data["device_token"] = deviceToken;
+          debugPrint("Device Token: $deviceToken");
+        }
+      } catch (e) {
+        debugPrint("FCM token fetch failed during login: $e");
+      }
 
-      // ✅ Step 1: Get FCM device token
-      String? deviceToken = await FirebaseMessaging.instance.getToken();
-      debugPrint("Device Token: $deviceToken");
-
-      // ✅ Step 2: Add token to your API data
-      data["device_token"] = deviceToken;
-
-      // ✅ Step 3: Send request
       final response = await authRepository.loginUser(data);
 
       if (response["status"].toString() == "1") {
         Utils.toastMessage(response["message"]);
-
-        // await NotificationService.showNotification(
-        //   title: "Login Successful",
-        //   body: "Welcome back, ${response["data"]["user"]["full_name"] ?? "User"}!",
-        // );
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => HomeScreen()),
@@ -175,28 +171,6 @@ class AuthViewModel extends ChangeNotifier {
       Utils.toastMessage("Error: ${e.toString()}");
     } finally {
       loading = false;
-    }
-  }
-
-  Future<void> storedDeviceTokenApi(String deviceToken) async {
-    loading = true;
-    notifyListeners();
-
-    try {
-      final data = {
-        "device_token": deviceToken,
-      };
-
-      final response = await authRepository.storedDeviceTokenRepo(data);
-
-      debugPrint("✅ Device token stored response: $response");
-      Utils.toastMessage(response["message"] ?? "Token stored");
-    } catch (e, stackTrace) {
-      debugPrint("⚠️ store device token error: $e\n$stackTrace");
-      Utils.toastMessage("Failed to store device token");
-    } finally {
-      loading = false;
-      notifyListeners();
     }
   }
 
@@ -483,17 +457,19 @@ class AuthViewModel extends ChangeNotifier {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => LogTimeScreen(
-              initialEventId: registeredEventId,
-              initialEventName: registeredEventName,
-            ),
+            builder:
+                (_) => LogTimeScreen(
+                  initialEventId: registeredEventId,
+                  initialEventName: registeredEventName,
+                ),
           ),
         );
       }
       // ✅ Case 2: API returned status = 0 or empty data
       else {
         // Prefer message from server
-        final message = response.message ?? "You have already registered for this event";
+        final message =
+            response.message ?? "You have already registered for this event";
 
         // Show toast
         Utils.toastMessage(message);
@@ -511,6 +487,7 @@ class AuthViewModel extends ChangeNotifier {
       loading = false;
     }
   }
+
   ///Handle session
   Future<void> checkLoginStatus(BuildContext context) async {
     await Future.delayed(Duration(seconds: 2)); // Splash delay
@@ -584,23 +561,4 @@ class AuthViewModel extends ChangeNotifier {
       notifyListeners(); // Explicitly update
     }
   }
-
-  Future<void> initFCMToken() async {
-    try {
-      await FirebaseMessaging.instance.requestPermission();
-
-      // Small delay to avoid SERVICE_NOT_AVAILABLE
-      await Future.delayed(const Duration(seconds: 2));
-
-      final token = await FirebaseMessaging.instance.getToken();
-      debugPrint("✅ FCM Token: $token");
-
-      if (token != null) {
-        await storedDeviceTokenApi(token);
-      }
-    } catch (e) {
-      debugPrint("❌ FCM token error: $e");
-    }
-  }
-
 }
