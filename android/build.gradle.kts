@@ -1,13 +1,3 @@
-val kotlin_version by extra("2.1.0")
-
-plugins {
-    // ...
-
-    // Add the dependency for the Google services Gradle plugin
-    id("com.google.gms.google-services") version "4.4.3" apply false
-
-}
-
 allprojects {
     repositories {
         google()

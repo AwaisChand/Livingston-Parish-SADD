@@ -63,4 +63,32 @@ class AppTextStyle {
       color: AppColors.whiteColor,
     ),
   );
+
+  static TextStyle welcomeLabel = GoogleFonts.montserrat(
+    color: AppColors.primaryColor,
+    fontSize: getFont(13),
+    fontWeight: FontWeight.w600,
+    letterSpacing: 3.2,
+  );
+
+  static TextStyle welcomeName = GoogleFonts.montserrat(
+    color: AppColors.deepPurpleColor,
+    fontSize: getFont(32),
+    fontWeight: FontWeight.w700,
+    height: 1.15,
+  );
+
+  static TextStyle welcomeSubtitle = GoogleFonts.montserrat(
+    color: AppColors.darkGray,
+    fontSize: getFont(15),
+    fontWeight: FontWeight.w400,
+    height: 1.45,
+  );
+
+  static TextStyle welcomeAction = GoogleFonts.montserrat(
+    color: AppColors.primaryColor,
+    fontSize: getFont(14),
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0.4,
+  );
 }

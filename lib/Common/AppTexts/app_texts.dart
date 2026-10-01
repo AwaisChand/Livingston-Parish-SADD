@@ -19,6 +19,9 @@ class AppTexts{
   static const String updatePasswordText = "Update Password";
   static const String resetText = "Reset";
   static const String updateText = "Update";
+  static const String welcomeLabel = "Welcome";
+  static const String welcomeSubtitle = "Students Against Destructive Decisions";
+  static const String welcomeContinue = "Continue";
 
 
 

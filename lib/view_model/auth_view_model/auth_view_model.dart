@@ -4,6 +4,7 @@ import 'package:dp_sad/Models/login_model/login_model.dart';
 import 'package:dp_sad/Screens/AuthScreens/LoginScreen/login_screen.dart';
 import 'package:dp_sad/Screens/AuthScreens/ResetPasswordScreen/reset_password_screen.dart';
 import 'package:dp_sad/Screens/AuthScreens/VerifyOtpScreen/verify_otp_screen.dart';
+import 'package:dp_sad/Screens/AuthScreens/WelcomeScreen/welcome_screen.dart';
 import 'package:dp_sad/Screens/HomeScreen/home_screen.dart';
 import 'package:dp_sad/Screens/LogTimeScreen/log_time_screen.dart';
 import 'package:dp_sad/core/notifications/notification_service.dart';
@@ -152,13 +153,16 @@ class AuthViewModel extends ChangeNotifier {
       final response = await authRepository.loginUser(data);
 
       if (response["status"].toString() == "1") {
+        final login = LoginModel.fromJson(response);
+        _user = login.data.user;
         Utils.toastMessage(response["message"]);
-        Navigator.push(
+        if (!context.mounted) return;
+        Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
+          WelcomeScreen.route(displayName: login.data.user.fullName),
+          (_) => false,
         );
-        _user = LoginModel.fromJson(response).data.user;
-        await getProfileApi(context);
+        await getProfileApiWithoutContext();
       } else {
         Utils.toastMessage(response["message"] ?? "Login failed");
       }

@@ -57,7 +57,7 @@ class NotificationService {
     );
 
     await _local.initialize(
-      initSettings,
+      settings: initSettings,
       onDidReceiveNotificationResponse: (response) {
         debugPrint(
           '[FCM][LOCAL_TAP] actionId=${response.actionId} '
@@ -189,7 +189,13 @@ class NotificationService {
     debugPrint(
       '[FCM][LOCAL_SHOW] id=$id title="$title" body="$body" payload=$data',
     );
-    await _local.show(id, title, body, details, payload: jsonEncode(data));
+    await _local.show(
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: details,
+      payload: jsonEncode(data),
+    );
   }
 
   Future<String?> getFcmToken() async {

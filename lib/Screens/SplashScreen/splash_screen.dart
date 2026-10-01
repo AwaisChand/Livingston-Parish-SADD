@@ -13,17 +13,17 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-
   @override
   void initState() {
     super.initState();
     final authProvider = context.read<AuthViewModel>();
     authProvider.checkLoginStatus(context);
   }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthViewModel>(
-      builder: (context,auth, _){
+      builder: (context, auth, _) {
         return Scaffold(
           body: Column(
             mainAxisAlignment: MainAxisAlignment.center,

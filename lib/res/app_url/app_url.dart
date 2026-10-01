@@ -57,6 +57,4 @@ class AppUrl {
   ///Device Token Stored End Point
 
   static var deviceTokenStoredApiEndPoint = '${baseUrl}api/storeDeviceToken';
-
-
 }

@@ -243,7 +243,7 @@ class _PointsScreenState extends State<PointsScreen> {
         left: getWidth(20),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             text1,
@@ -251,11 +251,15 @@ class _PointsScreenState extends State<PointsScreen> {
               color: AppColors.whiteColor,
             ),
           ),
-          Text(
-            text2,
-            style: AppTextStyle.k12Bold700TextStyle.copyWith(
-              color: AppColors.whiteColor,
-              fontWeight: FontWeight.w500,
+          SizedBox(width: getWidth(12)),
+          Expanded(
+            child: Text(
+              text2,
+              textAlign: TextAlign.end,
+              style: AppTextStyle.k12Bold700TextStyle.copyWith(
+                color: AppColors.whiteColor,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
