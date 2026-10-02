@@ -155,10 +155,12 @@ class _PointsScreenState extends State<PointsScreen> {
                                     final pointsData =
                                         pointsProvider.points[index];
                                     return Container(
-                                      height: getHeight(185),
                                       width: double.infinity,
                                       margin: EdgeInsets.only(
                                         bottom: getHeight(20),
+                                      ),
+                                      padding: EdgeInsets.only(
+                                        bottom: getHeight(15),
                                       ),
                                       decoration: BoxDecoration(
                                         color: AppColors.primaryColor,

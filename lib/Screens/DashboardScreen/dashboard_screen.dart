@@ -200,7 +200,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             );
                                           },
                                           child: Container(
-                                            height: getHeight(230),
                                             padding: EdgeInsets.all(getWidth(10)),
                                             decoration: BoxDecoration(
                                               color: AppColors.primaryColor,
@@ -209,6 +208,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               ),
                                             ),
                                             child: Column(
+                                              mainAxisSize: MainAxisSize.min,
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
@@ -235,6 +235,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                 _columnWidget(
                                                   "Description",
                                                   "${dashboardData?.event.description}",
+                                                  maxLines: 2,
                                                 ),
                                                 5.sh,
                                                 _columnWidget(
@@ -308,7 +309,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             );
                                           },
                                           child: Container(
-                                            height: getHeight(210),
                                             padding: EdgeInsets.all(getWidth(10)),
                                             decoration: BoxDecoration(
                                               color: AppColors.primaryColor,
@@ -317,6 +317,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               ),
                                             ),
                                             child: Column(
+                                              mainAxisSize: MainAxisSize.min,
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
@@ -341,6 +342,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                 _columnWidget(
                                                   "Description",
                                                   "${dashboardData?.description}",
+                                                  maxLines: 2,
                                                 ),
                                                 5.sh,
                                                 _columnWidget(
@@ -415,7 +417,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                             );
                                           },
                                           child: Container(
-                                            height: getHeight(210),
                                             padding: EdgeInsets.all(
                                               getWidth(10),
                                             ),
@@ -425,6 +426,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                   BorderRadius.circular(10),
                                             ),
                                             child: Column(
+                                              mainAxisSize: MainAxisSize.min,
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.start,
                                               children: [
@@ -449,6 +451,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                 _columnWidget(
                                                   "Description",
                                                   "${dashboardData?.description}",
+                                                  maxLines: 2,
                                                 ),
                                                 5.sh,
                                                 _columnWidget(
@@ -473,18 +476,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _columnWidget(String text1, text2) {
+  Widget _columnWidget(String text1, text2, {int? maxLines}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           text1,
-          overflow: TextOverflow.ellipsis,
           style: AppTextStyle.k12Bold400TextStyle,
         ),
         Text(
-          text2,
-          overflow: TextOverflow.ellipsis,
+          '$text2',
+          maxLines: maxLines,
+          overflow: maxLines == null ? TextOverflow.visible : TextOverflow.ellipsis,
           style: AppTextStyle.k12Bold700TextStyle,
         ),
       ],
