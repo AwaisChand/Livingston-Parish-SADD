@@ -501,10 +501,12 @@ class _ViewInfoScreenState extends State<ViewInfoScreen> {
                                 if (!isEditing && auth.isLoggedIn)
                                   AppButton(
                                     onPressed: () {
+                                      if (auth.deleteLoading) return;
                                       auth.deleteAccountApi(context);
                                     },
                                     btnText: "Delete Account",
                                     fontSize: 25,
+                                    isLoading: auth.deleteLoading,
                                   ),
                                 10.sh,
                               ],

@@ -38,6 +38,8 @@ class AuthViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool _userLoading = false;
   bool get userLoading => _userLoading;
+  bool _deleteLoading = false;
+  bool get deleteLoading => _deleteLoading;
   bool _resendLoading = false;
   bool get resendLoading => _resendLoading;
   LoginModel? loginModel;
@@ -52,6 +54,11 @@ class AuthViewModel extends ChangeNotifier {
 
   set profileLoading(bool setLoading) {
     _userLoading = setLoading;
+    notifyListeners();
+  }
+
+  set deleteAccountLoading(bool setLoading) {
+    _deleteLoading = setLoading;
     notifyListeners();
   }
 
@@ -383,7 +390,7 @@ class AuthViewModel extends ChangeNotifier {
   ///Delete Account Api
 
   Future<void> deleteAccountApi(BuildContext context) async {
-    loading = true;
+    deleteAccountLoading = true;
     try {
       final response = await authRepository.deleteAccount();
 
@@ -407,7 +414,7 @@ class AuthViewModel extends ChangeNotifier {
       debugPrint("Delete Account error: $e");
       Utils.toastMessage("Error: ${e.toString()}");
     } finally {
-      loading = false;
+      deleteAccountLoading = false;
     }
   }
 
