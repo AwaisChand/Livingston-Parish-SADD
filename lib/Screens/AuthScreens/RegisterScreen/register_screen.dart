@@ -176,8 +176,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           dropdownTextStyle: AppTextStyle.k15Bold400TextStyle
                               .copyWith(color: Colors.white),
+                          disableLengthCheck: true,
                           decoration: InputDecoration(
-                            hintText: 'Phone Number',
+                            hintText: 'Phone Number (optional)',
                             hintStyle: AppTextStyle.k15Bold400TextStyle
                                 .copyWith(color: AppColors.whiteColor),
                             enabledBorder: OutlineInputBorder(
@@ -234,17 +235,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               setState(() {
                                 _selectedDate = pickedDate;
                                 _dobController.text =
-                                "${pickedDate.day.toString().padLeft(2, '0')}/"
+                                    "${pickedDate.day.toString().padLeft(2, '0')}/"
                                     "${pickedDate.month.toString().padLeft(2, '0')}/"
                                     "${pickedDate.year}";
-
                               });
                             }
                           },
                           child: AbsorbPointer(
                             child: AppTextField(
                               controller: _dobController,
-                              hintText: 'Date of Birth',
+                              hintText: 'Date of Birth (optional)',
                               textInputType: TextInputType.datetime,
                             ),
                           ),
@@ -253,25 +253,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         AppTextField(
                           controller: _addressController,
                           textInputType: TextInputType.name,
-                          hintText: 'Address',
+                          hintText: 'Address (optional)',
                         ),
                         18.sh,
                         AppTextField(
                           controller: _cityController,
                           textInputType: TextInputType.name,
-                          hintText: 'City',
+                          hintText: 'City (optional)',
                         ),
                         18.sh,
                         AppTextField(
                           controller: _stateController,
                           textInputType: TextInputType.name,
-                          hintText: 'State',
+                          hintText: 'State (optional)',
                         ),
                         18.sh,
                         AppTextField(
                           controller: _zipController,
                           textInputType: TextInputType.number,
-                          hintText: 'Zip',
+                          hintText: 'Zip (optional)',
                         ),
                         30.sh,
                         AppButton(
@@ -280,38 +280,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               Utils.toastMessage('Please enter name');
                             } else if (_emailController.text.isEmpty) {
                               Utils.toastMessage('Please enter email');
-                            } else if (_phoneController.text.isEmpty) {
-                              Utils.toastMessage('Please enter phone');
                             } else if (_passwordController.text.isEmpty) {
                               Utils.toastMessage('Please enter password');
                             } else if (_passwordController.text.length < 8) {
-                              Utils.toastMessage('Please Enter 8 digit password');
-                            }
-                            else if (_confirmPasswordController
+                              Utils.toastMessage(
+                                'Please Enter 8 digit password',
+                              );
+                            } else if (_confirmPasswordController
                                 .text
                                 .isEmpty) {
                               Utils.toastMessage('Please re-enter password');
                             } else if (_passwordController.text !=
                                 _confirmPasswordController.text) {
                               Utils.toastMessage('Password does not match');
-                            } else if (_dobController.text.isEmpty) {
-                              Utils.toastMessage(
-                                'Please enter your date of birth',
-                              );
-                            } else if (_addressController.text.isEmpty) {
-                              Utils.toastMessage('Please enter your address');
-                            } else if (_cityController.text.isEmpty) {
-                              Utils.toastMessage('Please enter your city');
-                            } else if (_stateController.text.isEmpty) {
-                              Utils.toastMessage('Please enter your state');
-                            } else if (_zipController.text.isEmpty) {
-                              Utils.toastMessage('Please enter your zip code');
-                            }
-                            else {
+                            } else {
                               Map<String, dynamic> data = {
                                 'full_name': _nameController.text.toString(),
                                 'email': _emailController.text.toString(),
-                                'phone_number': auth.fullPhone,
+                                'phone_number':
+                                    _phoneController.text.trim().isEmpty
+                                        ? ''
+                                        : auth.fullPhone,
 
                                 'password': _passwordController.text.toString(),
                                 'password_confirmation':
