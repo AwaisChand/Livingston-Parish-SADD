@@ -71,7 +71,7 @@ class User {
     id: json["id"],
     fullName: json["full_name"],
     email: json["email"],
-    phoneNumber: json["phone_number"],
+    phoneNumber: json["phone_number"]?.toString() ?? '',
     role: json["role"],
     status: json["status"],
     createdAt: DateTime.parse(json["created_at"]),
